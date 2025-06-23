@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GearStrike QS Controller</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .status-disconnected {
+            background: rgba(220, 38, 38, 0.2);
+            border: 2px solid #dc2626;
+        }
+
+        .status-connected {
+            background: rgba(34, 197, 94, 0.2);
+            border: 2px solid #22c55e;
+        }
+
+        .status-searching {
+            background: rgba(251, 191, 36, 0.2);
+            border: 2px solid #fbbf24;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .dot-red { background: #dc2626; }
+        .dot-green { background: #22c55e; }
+        .dot-yellow { background: #fbbf24; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+
+        .control-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-align: center;
+            color: #e2e8f0;
+        }
+
+        .kill-time-display {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .kill-time-value {
+            font-size: 3em;
+            font-weight: bold;
+            color: #60a5fa;
+            text-shadow: 0 0 20px rgba(96, 165, 250, 0.5);
+        }
+
+        .kill-time-unit {
+            font-size: 1.2em;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover:before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-size: 1.1em;
+            text-align: center;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+        }
+
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .quick-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .quick-btn {
+            padding: 12px 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quick-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .log-section {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            height: 150px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-entry.sent {
+            color: #60a5fa;
+        }
+
+        .log-entry.received {
+            color: #34d399;
+        }
+
+        .log-entry.error {
+            color: #ef4444;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            opacity: 0.6;
+            font-size: 0.9em;
+        }
+
+        .device-selection {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .device-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .device-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .device-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .device-name {
+            font-weight: 600;
+        }
+
+        .device-id {
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+            
+            .kill-time-value {
+                font-size: 2.5em;
+            }
+            
+            .btn {
+                padding: 12px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>GearStrike</h1>
+            <p>Quickshifter Controller</p>
+        </div>
+
+        <div id="connectionStatus" class="connection-status status-disconnected">
+            <div class="status-dot dot-red"></div>
+            <span>Bluetooth Disconnected</span>
+        </div>
+
+        <div class="control-section">
+            <button id="connectBtn" class="btn btn-primary" style="width: 100%; margin-bottom: 20px;">
+                Scan Bluetooth Devices
+            </button>
+            
+            <div id="deviceSelection" class="device-selection" style="display: none;">
+                <div class="section-title">Available Devices</div>
+                <div id="deviceList" class="device-list">
+                </div>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <div class="section-title">Kill Time Control</div>
+            
+            <div class="kill-time-display">
+                <div id="killTimeValue" class="kill-time-value">100</div>
+                <div class="kill-time-unit">milliseconds</div>
+            </div>
+
+            <div class="button-group">
+                <button id="decreaseBtn" class="btn btn-danger" disabled>
+                    -5ms
+                </button>
+                <button id="increaseBtn" class="btn btn-success" disabled>
+                    +5ms
+                </button>
+            </div>
+
+            <div class="input-group">
+                <input type="number" id="customValue" class="input-field" 
+                       placeholder="Enter value (50-150)" min="50" max="150" disabled>
+                <button id="setBtn" class="btn btn-primary" disabled>SET</button>
+            </div>
+
+            <div class="quick-buttons">
+                <button class="quick-btn" data-value="50" disabled>50ms</button>
+                <button class="quick-btn" data-value="75" disabled>75ms</button>
+                <button class="quick-btn" data-value="100" disabled>100ms</button>
+                <button class="quick-btn" data-value="125" disabled>125ms</button>
+                <button class="quick-btn" data-value="140" disabled>140ms</button>
+                <button class="quick-btn" data-value="150" disabled>150ms</button>
+            </div>
+
+            <button id="queryBtn" class="btn btn-primary" style="width: 100%; margin-bottom: 20px;" disabled>
+                Get Current Value
+            </button>
+        </div>
+
+        <div class="control-section">
+            <div class="section-title">Communication Log</div>
+            <div id="logSection" class="log-section">
+                <div class="log-entry">Ready to connect...</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>by @yogamanrr | GearStrike QS v1.0</p>
+        </div>
+    </div>
+
+    <script>
+        class GearStrikeController {
+            constructor() {
+                this.device = null;
+                this.characteristic = null;
+                this.notifyCharacteristic = null;
+                this.connected = false;
+                this.currentKillTime = 100;
+                this.connectionTimeout = null;
+                
+                this.initializeElements();
+                this.bindEvents();
+                this.addLog('App initialized - Ready to scan');
+            }
+
+            initializeElements() {
+                this.elements = {
+                    connectBtn: document.getElementById('connectBtn'),
+                    connectionStatus: document.getElementById('connectionStatus'),
+                    deviceSelection: document.getElementById('deviceSelection'),
+                    deviceList: document.getElementById('deviceList'),
+                    killTimeValue: document.getElementById('killTimeValue'),
+                    decreaseBtn: document.getElementById('decreaseBtn'),
+                    increaseBtn: document.getElementById('increaseBtn'),
+                    customValue: document.getElementById('customValue'),
+                    setBtn: document.getElementById('setBtn'),
+                    queryBtn: document.getElementById('queryBtn'),
+                    logSection: document.getElementById('logSection'),
+                    quickBtns: document.querySelectorAll('.quick-btn')
+                };
+            }
+
+            bindEvents() {
+                this.elements.connectBtn.addEventListener('click', () => this.toggleConnection());
+                this.elements.decreaseBtn.addEventListener('click', () => this.sendCommand('D'));
+                this.elements.increaseBtn.addEventListener('click', () => this.sendCommand('U'));
+                this.elements.setBtn.addEventListener('click', () => this.setCustomValue());
+                this.elements.queryBtn.addEventListener('click', () => this.sendCommand('?'));
+                
+                this.elements.customValue.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.setCustomValue();
+                    }
+                });
+
+                this.elements.quickBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const value = btn.dataset.value;
+                        this.sendCommand(value);
+                    });
+                });
+            }
+
+            async toggleConnection() {
+                if (!this.connected) {
+                    await this.scanDevices();
+                } else {
+                    this.disconnect();
+                }
+            }
+
+            async scanDevices() {
+                try {
+                    this.updateConnectionStatus('searching');
+                    this.addLog('Scanning for Bluetooth devices...');
+                    this.elements.deviceList.innerHTML = '';
+                    this.elements.deviceSelection.style.display = 'none';
+                    
+                    // Set timeout for scanning
+                    const scanTimeout = setTimeout(() => {
+                        this.addLog('Scan timeout - please try again', 'error');
+                        this.updateConnectionStatus('disconnected');
+                    }, 30000);
+
+                    // Multiple service UUIDs for broader compatibility
+                    const serviceUuids = [
+                        '6e400001-b5a3-f393-e0a9-e50e24dcca9e', // Nordic UART
+                        '0000ffe0-0000-1000-8000-00805f9b34fb', // Common BLE UART
+                        '6e400001-b5a3-f393-e0a9-e50e24dcca9e'  // Duplicate for emphasis
+                    ];
+
+                    // Try different scan approaches
+                    let device = null;
+                    
+                    // Approach 1: Scan by name prefix
+                    try {
+                        device = await navigator.bluetooth.requestDevice({
+                            filters: [
+                                { namePrefix: 'HC-' },
+                                { namePrefix: 'AT-' },
+                                { namePrefix: 'ESP32' },
+                                { namePrefix: 'Arduino' },
+                                { namePrefix: 'GearStrike' },
+                                { namePrefix: 'QS' }
+                            ],
+                            optionalServices: serviceUuids
+                        });
+                    } catch (error1) {
+                        this.addLog('Name-based scan failed, trying service-based...');
+                        
+                        // Approach 2: Scan by service
+                        try {
+                            device = await navigator.bluetooth.requestDevice({
+                                filters: [
+                                    { services: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e'] },
+                                    { services: ['0000ffe0-0000-1000-8000-00805f9b34fb'] }
+                                ]
+                            });
+                        } catch (error2) {
+                            this.addLog('Service-based scan failed, trying open scan...');
+                            
+                            // Approach 3: Accept all devices with UART service
+                            device = await navigator.bluetooth.requestDevice({
+                                acceptAllDevices: true,
+                                optionalServices: serviceUuids
+                            });
+                        }
+                    }
+
+                    clearTimeout(scanTimeout);
+                    
+                    if (device) {
+                        await this.connectToDevice(device);
+                    }
+                    
+                } catch (error) {
+                    this.addLog(`Scan failed: ${error.message}`, 'error');
+                    this.updateConnectionStatus('disconnected');
+                    console.error('Bluetooth scan error:', error);
+                }
+            }
+
+            async connectToDevice(device) {
+                try {
+                    this.device = device;
+                    this.addLog(`Connecting to ${device.name || 'Unknown Device'}...`);
+                    
+                    // Add disconnect event listener
+                    device.addEventListener('gattserverdisconnected', () => {
+                        this.addLog('Device disconnected');
+                        this.connected = false;
+                        this.updateConnectionStatus('disconnected');
+                        this.enableControls(false);
+                    });
+
+                    // Connect with timeout
+                    const connectPromise = device.gatt.connect();
+                    const timeoutPromise = new Promise((_, reject) => {
+                        setTimeout(() => reject(new Error('Connection timeout')), 15000);
+                    });
+                    
+                    const server = await Promise.race([connectPromise, timeoutPromise]);
+                    this.addLog('GATT server connected');
+                    
+                    // Try different service UUIDs
+                    let service = null;
+                    const serviceIds = [
+                        '6e400001-b5a3-f393-e0a9-e50e24dcca9e',
+                        '0000ffe0-0000-1000-8000-00805f9b34fb'
+                    ];
+                    
+                    for (const serviceId of serviceIds) {
+                        try {
+                            service = await server.getPrimaryService(serviceId);
+                            this.addLog(`Connected to service: ${serviceId.substring(0, 8)}...`);
+                            break;
+                        } catch (e) {
+                            continue;
+                        }
+                    }
+                    
+                    if (!service) {
+                        throw new Error('No compatible UART service found');
+                    }
+                    
+                    // Get characteristics with multiple attempts
+                    const charIds = [
+                        {
+                            tx: '6e400002-b5a3-f393-e0a9-e50e24dcca9e',
+                            rx: '6e400003-b5a3-f393-e0a9-e50e24dcca9e'
+                        },
+                        {
+                            tx: '0000ffe1-0000-1000-8000-00805f9b34fb',
+                            rx: '0000ffe1-0000-1000-8000-00805f9b34fb'
+                        }
+                    ];
+                    
+                    for (const chars of charIds) {
+                        try {
+                            this.characteristic = await service.getCharacteristic(chars.tx);
+                            this.addLog('TX characteristic found');
+                            
+                            if (chars.tx !== chars.rx) {
+                                this.notifyCharacteristic = await service.getCharacteristic(chars.rx);
+                            } else {
+                                this.notifyCharacteristic = this.characteristic;
+                            }
+                            this.addLog('RX characteristic found');
+                            break;
+                        } catch (e) {
+                            continue;
+                        }
+                    }
+                    
+                    if (!this.characteristic) {
+                        throw new Error('No compatible characteristics found');
+                    }
+                    
+                    // Start notifications
+                    await this.notifyCharacteristic.startNotifications();
+                    this.notifyCharacteristic.addEventListener('characteristicvaluechanged', (event) => {
+                        const value = new TextDecoder().decode(event.target.value);
+                        this.handleResponse(value);
+                    });
+
+                    this.connected = true;
+                    this.updateConnectionStatus('connected');
+                    this.enableControls(true);
+                    this.addLog(`Successfully connected to ${device.name || 'Device'}`);
+                    
+                    // Query current value after a short delay
+                    setTimeout(() => this.sendCommand('?'), 1000);
+                    
+                } catch (error) {
+                    this.addLog(`Connection failed: ${error.message}`, 'error');
+                    this.updateConnectionStatus('disconnected');
+                    if (this.device && this.device.gatt.connected) {
+                        this.device.gatt.disconnect();
+                    }
+                    console.error('Device connection error:', error);
+                }
+            }
+
+            disconnect() {
+                if (this.device && this.device.gatt.connected) {
+                    this.device.gatt.disconnect();
+                }
+                this.connected = false;
+                this.device = null;
+                this.characteristic = null;
+                this.notifyCharacteristic = null;
+                this.updateConnectionStatus('disconnected');
+                this.enableControls(false);
+                this.addLog('Disconnected from device');
+            }
+
+            async sendCommand(command) {
+                if (!this.connected || !this.characteristic) {
+                    this.addLog('Device not connected!', 'error');
+                    return;
+                }
+
+                try {
+                    const commandWithNewline = command + '\n';
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(commandWithNewline);
+                    
+                    await this.characteristic.writeValue(data);
+                    this.addLog(`Sent: ${command}`, 'sent');
+                    
+                } catch (error) {
+                    this.addLog(`Send error: ${error.message}`, 'error');
+                    console.error('Send command error:', error);
+                    
+                    // Try to reconnect if write fails
+                    if (error.message.includes('GATT') || error.message.includes('disconnected')) {
+                        this.addLog('Connection lost, attempting to reconnect...');
+                        this.disconnect();
+                    }
+                }
+            }
+
+            setCustomValue() {
+                const value = parseInt(this.elements.customValue.value);
+                if (value >= 50 && value <= 150) {
+                    this.sendCommand(value.toString());
+                    this.elements.customValue.value = '';
+                } else {
+                    this.addLog('Value must be between 50-150ms', 'error');
+                }
+            }
+
+            handleResponse(response) {
+                const cleanResponse = response.trim();
+                if (cleanResponse) {
+                    this.addLog(`Received: ${cleanResponse}`, 'received');
+                    
+                    // Parse kill time from response
+                    const match = cleanResponse.match(/(\d+)\s*ms/);
+                    if (match) {
+                        this.currentKillTime = parseInt(match[1]);
+                        this.elements.killTimeValue.textContent = this.currentKillTime;
+                    }
+                }
+            }
+
+            updateConnectionStatus(status) {
+                const statusElement = this.elements.connectionStatus;
+                const statusDot = statusElement.querySelector('.status-dot');
+                const statusText = statusElement.querySelector('span');
+                
+                switch(status) {
+                    case 'connected':
+                        statusElement.className = 'connection-status status-connected';
+                        statusDot.className = 'status-dot dot-green';
+                        statusText.textContent = 'Bluetooth Connected';
+                        this.elements.connectBtn.textContent = 'Disconnect';
+                        this.elements.connectBtn.className = 'btn btn-danger';
+                        break;
+                    case 'searching':
+                        statusElement.className = 'connection-status status-searching';
+                        statusDot.className = 'status-dot dot-yellow';
+                        statusText.textContent = 'Scanning for devices...';
+                        this.elements.connectBtn.textContent = 'Cancel Scan';
+                        this.elements.connectBtn.className = 'btn btn-danger';
+                        break;
+                    default: // disconnected
+                        statusElement.className = 'connection-status status-disconnected';
+                        statusDot.className = 'status-dot dot-red';
+                        statusText.textContent = 'Bluetooth Disconnected';
+                        this.elements.connectBtn.textContent = 'Scan Bluetooth Devices';
+                        this.elements.connectBtn.className = 'btn btn-primary';
+                        break;
+                }
+            }
+
+            enableControls(enabled) {
+                const controls = [
+                    this.elements.decreaseBtn,
+                    this.elements.increaseBtn,
+                    this.elements.setBtn,
+                    this.elements.queryBtn,
+                    this.elements.customValue,
+                    ...this.elements.quickBtns
+                ];
+                
+                controls.forEach(control => {
+                    control.disabled = !enabled;
+                });
+            }
+
+            addLog(message, type = '') {
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${type}`;
+                logEntry.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+                
+                this.elements.logSection.appendChild(logEntry);
+                this.elements.logSection.scrollTop = this.elements.logSection.scrollHeight;
+                
+                // Keep only last 50 log entries
+                const logEntries = this.elements.logSection.querySelectorAll('.log-entry');
+                if (logEntries.length > 50) {
+                    logEntries[0].remove();
+                }
+            }
+        }
+
+        // Check for Web Bluetooth support and HTTPS
+        if (!('bluetooth' in navigator)) {
+            document.body.innerHTML = `
+                <div class="container">
+                    <div class="header">
+                        <h1>GearStrike</h1>
+                        <p style="color: #ef4444;">Web Bluetooth not supported</p>
+                    </div>
+                    <p style="text-align: center; opacity: 0.8;">
+                        This browser doesn't support Web Bluetooth API. 
+                        Please use Chrome or Edge on Android/Windows.
+                    </p>
+                </div>
+            `;
+        } else if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+            document.body.innerHTML = `
+                <div class="container">
+                    <div class="header">
+                        <h1>GearStrike</h1>
+                        <p style="color: #ef4444;">HTTPS Required</p>
+                    </div>
+                    <p style="text-align: center; opacity: 0.8;">
+                        Web Bluetooth requires HTTPS. Please access this page via HTTPS.
+                    </p>
+                </div>
+            `;
+        } else {
+            const controller = new GearStrikeController();
+        }
+    </script>
+</body>
+</html>
